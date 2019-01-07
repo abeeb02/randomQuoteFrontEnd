@@ -1,0 +1,85 @@
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+ 
+        <link href="bootstrap.css" rel="stylesheet"/>
+
+        <script type="text/javascript">
+            function rand(min, max) { return Math.round(Math.random() * (max - min) + min); }
+            function getQuote() {
+                document.getElementById("quote_btn").innerHTML = "...FAXING";
+                var r = rand(1, 9); //get the inital data from the file
+                const Http = new XMLHttpRequest();
+
+		//For use when developing locally using go REST api
+		//const url='http://localhost:8081/season/'+r+'/'
+
+                const url='http://the-office-api.herokuapp.com/season/'+r+'/format/quotes/';
+                
+                Http.open("GET", url);
+                Http.send();
+                Http.onreadystatechange=(e)=>{
+                    //send the response to get the random quote within random episode
+                    document.getElementById("quote_table").innerHTML = constructQuote(getRandomEpisode(JSON.parse(Http.responseText), r));
+                    document.getElementById("quote_btn").innerHTML = "SUBMIT";
+                }
+            }
+
+            function getRandomEpisode(r, s) {
+                var e = rand(0, r.data.length - 1);
+                var q = rand(0, r.data[e].quotes.length - 1)
+                document.getElementById("tag_box").innerHTML = "S: " + s + " E: " + e;
+                return r.data[e].quotes[q];
+            }
+
+            function constructQuote(q) {
+                var con = "";
+                for(var i = 0; i < q.length; i++) { //alternate bg color for better UX
+                    var tag = q[i].substring(0, q[i].indexOf(":") + 1);
+                    var tail = q[i].substring(tag.length + 1, q[i].length);
+                    var quote = '<td>'+tag+'</td><td>'+tail+'</td>';
+                    if(i % 2 != 0){ con+= '<tr class="table-light">' + quote + '</tr>'; }
+                    else { con+= '<tr class="table-secondary">' + quote + '</tr>'; }
+                }
+                return con;
+            }
+        </script>
+        <style>
+            body {
+                background-color: #B69A75;
+                margin-top: 50px;
+                margin-bottom: 50px;
+            }
+            #quote_table {
+                border-radius: 4px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="jumbotron">
+                <h1>IT IS A QUOTE GENERATOR</h1>
+                <p>A simple one page web application designed by 
+                    <a href="http://abwebdesigned.com/">Amber Beebe</a>. Built using the open source&nbsp;
+                    <a href="http://the-office-api.herokuapp.com/">The Office API</a>. I did not create 
+                nor do I claim ownership of the quotes used, all credit due to the incredible actors, writers, and creators of the hit US show,  
+                <a href="https://www.imdb.com/title/tt0386676/">The Office</a>. This app was created with the sole intention to bring 
+            about more unproductive-ness and general whimsy to anyone's day, in true Jim Halpert fashion. I hope you enjoy.</p>
+                <hr>
+                <button id="quote_btn" type="submit" class="btn btn-secondary" onclick="getQuote()">SUBMIT</button>
+            </div>
+            <div class="row">
+                <div class="container">
+                    <h3 id="tag_box"></h3>
+                </div>
+            </div>
+            <div class="row">
+                <div id="quote_box" class="container">
+                    <table id="quote_table" class="table"><tbody></tbody></table>
+                </div>
+            </div>
+        </div>        
+    </body>
+</html>
